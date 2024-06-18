@@ -1,0 +1,80 @@
+Вот пример кода, который реализует встречу с препятствием и возвращение на исходную позицию:
+
+#include <Arduino.h>
+#include <Servo.h>
+
+// Определение пинов для моторов и датчика расстояния
+const int leftMotorPin1 = 12;
+const int leftMotorPin2 = 14;
+const int rightMotorPin1 = 27;
+const int rightMotorPin2 = 26;
+const int trigPin = 5;
+const int echoPin = 18;
+
+// Объявление сервомоторов
+Servo leftMotor, rightMotor;
+
+// Переменные для хранения расстояния до препятствия
+int distance;
+
+void setup() {
+  // Инициализация пинов для моторов
+  pinMode(leftMotorPin1, OUTPUT);
+  pinMode(leftMotorPin2, OUTPUT);
+  pinMode(rightMotorPin1, OUTPUT);
+  pinMode(rightMotorPin2, OUTPUT);
+
+  // Инициализация пинов для датчика расстояния
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  // Инициализация сервомоторов
+  leftMotor.attach(leftMotorPin1);
+  rightMotor.attach(rightMotorPin1);
+}
+
+void loop() {
+  // Измерение расстояния до препятствия
+  distance = measureDistance();
+
+  // Если расстояние меньше 20 см, остановить робота и вернуться на исходную позицию
+  if (distance < 20) {
+    stopRobot();
+    reverseRobot();
+  } else {
+    // Иначе, продолжать движение вперед
+    moveForward();
+  }
+}
+
+// Функция для измерения расстояния до препятствия
+int measureDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  int duration = pulseIn(echoPin, HIGH);
+  return duration * 0.034 / 2;
+}
+
+// Функция для движения вперед
+void moveForward() {
+  leftMotor.write(180);
+  rightMotor.write(0);
+}
+
+// Функция для остановки робота
+void stopRobot() {
+  leftMotor.write(90);
+  rightMotor.write(90);
+}
+
+// Функция для движения назад
+void reverseRobot() {
+  leftMotor.write(0);
+  rightMotor.write(180);
+  delay(1000); // Двигаться назад в течение 1 секунды
+  stopRobot(); // Остановить робота
+}
+Этот код использует библиотеку Servo для управления моторами робота и ультразвуковой датчик расстояния для обнаружения препятствий. Когда робот обнаруживает препятствие на расстоянии менее 20 см, он останавливается и возвращается на исходную позицию. В противном случае, он продолжает двигаться вперед.

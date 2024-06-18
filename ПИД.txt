@@ -1,0 +1,91 @@
+Вот пример реализации ПИД-регулятора для управления мотором с энкодером на плате ESP32:
+
+#include <Arduino.h>
+#include <ESP32Encoder.h>
+
+// Настройки мотора
+const int motorPin1 = 12;
+const int motorPin2 = 13;
+const int motorPWMPin = 14;
+
+// Настройки энкодера
+ESP32Encoder encoder;
+const int encoderPinA = 34;
+const int encoderPinB = 35;
+
+// Параметры ПИД-регулятора
+float kp = 0.5;
+float ki = 0.1;
+float kd = 0.05;
+
+float targetPosition = 0;
+float currentPosition = 0;
+float error = 0;
+float prevError = 0;
+float integral = 0;
+float derivative = 0;
+float output = 0;
+
+void setup() {
+  // Настройка пинов мотора
+  pinMode(motorPin1, OUTPUT);
+  pinMode(motorPin2, OUTPUT);
+  pinMode(motorPWMPin, OUTPUT);
+
+  // Настройка энкодера
+  encoder.setCount(0);
+  encoder.attachHalfQuad(encoderPinA, encoderPinB);
+
+  // Инициализация Serial
+  Serial.begin(115200);
+}
+
+void loop() {
+  // Получение текущей позиции энкодера
+  currentPosition = encoder.getCount();
+
+  // Вычисление ошибки
+  error = targetPosition - currentPosition;
+
+  // Вычисление интегральной составляющей
+  integral += error;
+
+  // Вычисление производной составляющей
+  derivative = error - prevError;
+
+  // Вычисление выходного сигнала ПИД-регулятора
+  output = (kp * error) + (ki * integral) + (kd * derivative);
+
+  // Ограничение выходного сигнала
+  output = constrain(output, -255, 255);
+
+  // Управление мотором
+  if (output > 0) {
+    digitalWrite(motorPin1, HIGH);
+    digitalWrite(motorPin2, LOW);
+    analogWrite(motorPWMPin, (int)abs(output));
+  } else {
+    digitalWrite(motorPin1, LOW);
+    digitalWrite(motorPin2, HIGH);
+    analogWrite(motorPWMPin, (int)abs(output));
+  }
+
+  // Обновление предыдущей ошибки
+  prevError = error;
+
+  // Вывод информации в Serial
+  Serial.print("Target: ");
+  Serial.print(targetPosition);
+  Serial.print(", Current: ");
+  Serial.print(currentPosition);
+  Serial.print(", Error: ");
+  Serial.print(error);
+  Serial.print(", Output: ");
+  Serial.println(output);
+
+  // Задержка
+  delay(10);
+}
+Этот код использует библиотеку ESP32Encoder для работы с энкодером, подключенным к плате ESP32. Он реализует ПИД-регулятор для управления мотором, используя данные с энкодера.
+
+Вы можете настроить параметры ПИД-регулятора (kp, ki, kd) в соответствии с вашими требованиями. Также Вы можете изменить пины, используемые для мотора и энкодера, в соответствии с Вашей схемой подключения.

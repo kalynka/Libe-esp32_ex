@@ -1,0 +1,82 @@
+Программа для поворота робота на x градусов в квадрате 60 см:
+
+#include <Arduino.h>
+#include <Servo.h>
+
+Servo myServo;
+
+int desiredAngle = x; // Замените x на желаемый угол поворота
+
+void setup() {
+  myServo.attach(D2); // Подключаем сервопривод к пину D2 на ESP32
+  pinMode(D4, OUTPUT); // Пин для управления движением вперед
+  pinMode(D5, OUTPUT); // Пин для управления движением назад
+}
+
+void loop() {
+  // Поворот на заданный угол
+  myServo.write(desiredAngle);
+  delay(1000); // Ждем 1 секунду, пока сервопривод повернется
+
+  // Движение вперед на 60 см
+  digitalWrite(D4, HIGH);
+  digitalWrite(D5, LOW);
+  delay(2000); // Ждем 2 секунды, пока робот проедет 60 см
+
+  // Остановка
+  digitalWrite(D4, LOW);
+  digitalWrite(D5, LOW);
+  delay(1000); // Ждем 1 секунду перед следующим циклом
+}
+Программа для распознавания цветов и реагирования на них:
+
+#include <Arduino.h>
+#include <Adafruit_TCS34725.h>
+
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
+
+void setup() {
+  Serial.begin(9600);
+
+  if (tcs.begin()) {
+    Serial.println("Found color sensor");
+  } else {
+    Serial.println("No color sensor found ... check your connections");
+    while (1); // Остановка программы, если сенсор не найден
+  }
+
+  pinMode(D4, OUTPUT); // Пин для управления движением вперед
+  pinMode(D5, OUTPUT); // Пин для управления движением назад
+}
+
+void loop() {
+  uint16_t r, g, b, c, colorTemp, lux;
+
+  tcs.getRawData(&r, &g, &b, &c);
+  colorTemp = tcs.calculateColorTemperature(r, g, b);
+  lux = tcs.calculateLux(r, g, b);
+
+  Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial." K - ");
+  Serial.print("Lux: "); Serial.print(lux, DEC); Serial.println(" lux");
+
+  if (r > g && r > b) { // Красный цвет
+    Serial.println("Red detected!");
+    digitalWrite(D4, HIGH);
+    digitalWrite(D5, LOW);
+  } else if (g > r && g > b) { // Желтый цвет
+    Serial.println("Yellow detected!");
+    digitalWrite(D4, HIGH);
+    digitalWrite(D5, HIGH);
+  } else if (b > r && b > g) { // Синий цвет
+    Serial.println("Blue detected!");
+    digitalWrite(D4, LOW);
+    digitalWrite(D5, HIGH);
+  } else {
+    Serial.println("No color detected");
+    digitalWrite(D4, LOW);
+    digitalWrite(D5, LOW);
+  }
+
+  delay(500);
+}
+Эти программы демонстрируют основные принципы управления роботом на плате ESP32 с использованием сервопривода и датчика цвета. Вам может потребоваться доработать код в соответствии с вашими конкретными требованиями и подключенными компонентами. Если у Вас возникнут какие-либо вопросы, не стесняйтесь обращаться ко мне как программист
